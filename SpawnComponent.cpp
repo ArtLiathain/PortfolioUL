@@ -4,6 +4,7 @@
 #include "SpawnComponent.h"
 #include <ctime>
 #include <iostream>
+#include <windows.h>
 using namespace std;
 
 // Sets default values for this component's properties
@@ -18,14 +19,16 @@ USpawnComponent::USpawnComponent()
 void USpawnComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	SpawnPlatformSize = SpawnPlatformSize/2;
 
+	
+    
+	
 
 
 	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
 	// declare vector of locations and type
 	//declare vector of origins and type
-	
-	
 	
 	if(InputComponent)
 	{
@@ -35,6 +38,7 @@ void USpawnComponent::BeginPlay()
 		InputComponent->BindAction("Spawn_Human", IE_Pressed, this, &USpawnComponent::SpawnHuman);
 		InputComponent->BindAction("Spawn_Elf", IE_Pressed, this, &USpawnComponent::SpawnElf);
 		InputComponent->BindAction("Spawn_Dwarf", IE_Pressed, this, &USpawnComponent::SpawnDwarf);
+		InputComponent->BindAction("Spawn_Orc", IE_Pressed, this, &USpawnComponent::SpawnOrc);
 
 	}
 	
@@ -42,82 +46,142 @@ void USpawnComponent::BeginPlay()
 
 void USpawnComponent::SpawnHuman()
 {
-	float XValue = 0.f;
-	float YValue = 0.f;
-	//temp vector
 	TArray<float> temparray;
-	for(int i = 1; i <= 2; i++)
+	float XValue, YValue;
+	int bias1, bias2;
+	if(rand()%HumanBias == 1)
 	{
-		if(i == 1)
-		{
-			XValue = (((rand()%100*5900)/100)-2950);
-			temparray.Add(XValue);
-		}
-		if(i == 2)
-		{
-			YValue = (((rand()%100*5900)/100)-2950);
-			temparray.Add(YValue);
-		}
+		bias1 = rand()%100+1;
+		bias2 = rand()%100+1;
 	}
+	else 
+	{
+		bias1 = 200;
+		bias2 = 200;
+	}
+
+	XValue = RandomXLocationCreator(true, bias1);
+	YValue = RandomYLocationCreator(true, bias2);
+	
+	temparray.Add(XValue);
+	temparray.Add(YValue);
 	//push back evcotr
 	Locations.Add(temparray);
 	LocationChecker(0);
-		//return locatoin as part of the vector
 }
 
 void USpawnComponent::SpawnElf()
 {
-	float XValue = 0.f;
-	float YValue = 0.f;
 	TArray<float> temparray1;
-	for(int i = 1; i <= 2; i++)
+	float XValue, YValue;
+	int bias1, bias2;
+	if(rand()%ElfBias == 1)
 	{
-		if(i == 1)
-		{
-			XValue = (((rand()%100*5900)/100)-2950);
-			temparray1.Add(XValue);
-		}
-		if(i == 2)
-		{
-			YValue = (((rand()%100*5900)/100)-2950);
-			temparray1.Add(YValue);
-		}
-	}	
-	Locations.Add(temparray1);
-	// UE_LOG(LogTemp, Warning, TEXT("Array: %f"), Locations[1][0]);
+		bias1 = rand()%100 + 1;
+		bias2 = rand()%100 + 1;
+	}
+	else 
+	{
+		bias1 = 200;
+		bias2 = 200;
+	}
 
+	XValue = RandomXLocationCreator(false, bias1);
+	YValue = RandomYLocationCreator(true, bias2);
+
+	temparray1.Add(XValue);
+	temparray1.Add(YValue);
+	Locations.Add(temparray1);
 	LocationChecker(1);
 	
 }
 
 void USpawnComponent::SpawnDwarf()
 {
-	float XValue = 0.f;
-	float YValue = 0.f;
 	TArray<float> temparray2;
-	for(int i = 1; i <= 2; i++)
+	float XValue, YValue;
+	int bias1, bias2;
+	if(rand()%DwarfBias == 1)
 	{
-		if(i == 1)
-		{
-			XValue = (((rand()%100*5900)/100)-2950);
-			temparray2.Add(XValue);
-		}
-		if(i == 2)
-		{
-			YValue = (((rand()%100*5900)/100)-2950);
-			temparray2.Add(YValue);
-		}
+		bias1 = rand()%100 + 1;
+		bias2 = rand()%100 + 1;
 	}
+	else 
+	{
+		bias1 = 200;
+		bias2 = 200;
+	}
+
+	XValue = RandomXLocationCreator(true, bias1);
+	YValue = RandomYLocationCreator(false, bias2);
+
+	temparray2.Add(XValue);
+	temparray2.Add(YValue);
 	Locations.Add(temparray2);
 	LocationChecker(2);
+}
 
-	// UE_LOG(LogTemp, Warning, TEXT("Array: %f"), Locations[2][0]);
+void USpawnComponent::SpawnOrc()
+{
+	TArray<float> temparray3;
+	float XValue, YValue;
+	int bias1, bias2;
+	if(rand()%OrcBias == 1)
+	{
+		bias1 = rand()%100+1;
+		bias2 = rand()%100+1;
+	}
+	else 
+	{
+		bias1 = 200;
+		bias2 = 200;
+	}
+
+	XValue = RandomXLocationCreator(false, bias1);
+	YValue = RandomYLocationCreator(false, bias2);
+	
+	temparray3.Add(XValue);
+	temparray3.Add(YValue);
+	//push back evcotr
+	Locations.Add(temparray3);
+	LocationChecker(3);
+}
+
+float USpawnComponent::RandomXLocationCreator(bool XCoordMinus, int bias)
+{
+	float XValue = 0.f;
+	int temp = rand();
+	XValue = (SpawnPlatformSize - ((((temp%bias) + 1)*SpawnPlatformSize)/100));
+	if(XCoordMinus)
+	{
+		XValue = XValue*-1;
+	}
+	
+	return XValue;
+}
+
+float USpawnComponent::RandomYLocationCreator(bool YCoordMinus, int bias)
+{
+	float YValue = 0.f;
+	int temp = rand();
+
+	YValue = (SpawnPlatformSize - ((((temp%bias) + 1)*SpawnPlatformSize)/100));
+	if(YCoordMinus)
+	{
+		YValue = YValue*-1;
+	}
+
+	return YValue;
 }
 
 void USpawnComponent::LocationChecker(float race)
 {
 	WrongOverlap = false;
 	RightOverlap = false;
+	float OverlapOrigin = 0;
+	float WrongOverlapOrigin = 0;
+	float WrongOverlapRace = 0;
+	float OverlapPos = 0;
 	int arraylenght = Locations.Num();
 	float size = Locations[arraylenght-1][0];
 	float size1 = Locations[arraylenght-1][1];	
@@ -131,15 +195,19 @@ void USpawnComponent::LocationChecker(float race)
 	for (float i = 0; i < templenght; i++)
 	{
 		// itereate thtrough origins
-		if (Origins[i][0] >= size-boxsize && Origins[i][0] <= size+boxsize && Origins[i][1] >= size1-boxsize && Origins[i][1] <= size1+boxsize)
+		if (Origins[i][0] >= size-boxsize && Origins[i][0] <= size+boxsize && Origins[i][1] >= size1-boxsize && Origins[i][1] <= size1+boxsize && Origins[i][4] == 0)
 		{	
 			if(Origins[i][3] != race)
 			{
 				WrongOverlap = true;
+				WrongOverlapOrigin = i;
+				WrongOverlapRace = Origins[i][3];
+
 			}
 			else if(Origins[i][3] == race)
 			{
 				RightOverlap = true;
+				OverlapOrigin = Origins[i][3];
 			}
 
 			//i is referencing the first origin in sequence to it
@@ -148,58 +216,36 @@ void USpawnComponent::LocationChecker(float race)
 
 		if(i == templenght-1 && WrongOverlap == false && RightOverlap == true)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Overlaps same type"))
-			OriginAdder(0, race);
+			OriginAdder(OverlapOrigin, race);
 			LocationSpawner(race);
 		}
-		if(i == templenght-1 && WrongOverlap == false && RightOverlap == false)
+		else if(i == templenght-1 && WrongOverlap == false && RightOverlap == false)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("No Overlaps"))
-			OriginAdder(0, race);
+			OriginAdder(i, race);
 			LocationSpawner(race);
-			//home location == 0
 		}	
 
 			//if it overlaps wrong race don't spawn
-		if(i == templenght-1 && race == 0 && WrongOverlap == true)
+		else if(i == templenght-1 && WrongOverlap == true && RightOverlap == false)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Human try again"));
-			if(count < 11)
+			float ActualWrongOrigin = OriginFinder(WrongOverlapOrigin, WrongOverlapRace);
+			//delete the most recent mesh in that shape
+			//get most recent shape added
+			for(int h=templenght-1; h > 0; h--)
 			{
-				SpawnHuman();
-				count = 0;
+				float test = OriginFinder(h, WrongOverlapRace);
+				if(test == ActualWrongOrigin)
+				{
+					//delete actor using the actor array as reference
+					//delete SpawnedActors[h]
+					Origins[h][4] = 1;
+					SpawnedActors[h]->Destroy();
+					break;
+				}
 			}
-			count++;
-		}
-
-		if(i == templenght-1 && race == 1 && WrongOverlap == true)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Elf try again"));
-			if(count < 11)
-			{
-				SpawnElf();
-				count = 0;
-			}
-			count++;
-		}
-
-		if(i == templenght-1 && race == 2 && WrongOverlap == true)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Dwarf try again"));
-			if(count < 11)
-			{
-				SpawnDwarf();
-				count = 0;
-			}
-			count++;
 		}
 
 	}
-}
-
-void USpawnComponent::OverlapDeleter()
-{
-
 }
 
 void USpawnComponent::LocationSpawner(float race)
@@ -211,33 +257,80 @@ void USpawnComponent::LocationSpawner(float race)
 
 	if(race == 0)
 	{
-		GetWorld()->SpawnActor<AActor>(HumanToSpawn, Location, Rotation);
+		SpawnedActor = GetWorld()->SpawnActor<AActor>(HumanToSpawn, Location, Rotation);
+		SpawnedActors.Add(SpawnedActor);
 	}
 	if(race == 1)
 	{
-		GetWorld()->SpawnActor<AActor>(ElfToSpawn, Location, Rotation);
+		SpawnedActor = GetWorld()->SpawnActor<AActor>(ElfToSpawn, Location, Rotation);
+		SpawnedActors.Add(SpawnedActor);
 	}
 	if(race == 2)
 	{
-		GetWorld()->SpawnActor<AActor>(DwarfToSpawn, Location, Rotation);
+		SpawnedActor = GetWorld()->SpawnActor<AActor>(DwarfToSpawn, Location, Rotation);
+		SpawnedActors.Add(SpawnedActor);
 	}
+
+	if(race == 3)
+	{
+		SpawnedActor = GetWorld()->SpawnActor<AActor>(OrcToSpawn, Location, Rotation);
+		SpawnedActors.Add(SpawnedActor);
+	}
+		
+}
+
+float USpawnComponent::OriginFinder(float pos, float race)
+{	
+	float temppos = Origins[pos][2];
+	if(temppos != Origins[temppos][2] && race != Origins[temppos][3])
+	{
+		OriginFinder(temppos, race);
+	}
+	
+	return temppos;
+
 }
 
 void USpawnComponent::OriginAdder(float pos, float race)
 {
 	int arraylenght = Locations.Num();
-	Origins.Add({0,0,pos,race});
+	Origins.Add({0,0,pos,race,0});
 	int Originslenght = Origins.Num();
 	for(int j = 0; j < 2; j++)
 	{
 		Origins[Originslenght-1][j] = Locations[arraylenght-1][j];
 	}
 }
+
+void USpawnComponent::SpawnRandom()
+{
+	int random = rand()%4;
+	UE_LOG(LogTemp, Warning, TEXT("Random: %i"), random)
+	if(random == 0)
+	{
+		SpawnHuman();
+	}
+	
+	else if(random == 1)
+	{
+		SpawnElf();
+	}
+
+	else if(random == 2)
+	{
+		SpawnDwarf();
+	}
+
+	else if(random == 3)
+	{
+		SpawnOrc();
+	}
+
+}
 // Called every frame
 void USpawnComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	SpawnRandom();
 }
 
